@@ -7,7 +7,9 @@ import { useSearch } from "@/hooks/useSearch";
 import { exportAsJSON, exportAsCSV } from "@/utils/export";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Download, Terminal } from "lucide-react";
+import { Download, Terminal, Share2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Index = () => {
   const [platformVersion, setPlatformVersion] = useState(0);
@@ -88,6 +90,47 @@ const Index = () => {
             className="font-mono text-xs border-terminal/30 text-terminal hover:bg-terminal/10"
           >
             <Download className="h-3 w-3 mr-1" /> CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                const shareable = displayResults
+                  .filter((r) => r.status === "found" || r.status === "uncertain")
+                  .map((r) => ({
+                    platform: r.platform,
+                    url: r.url,
+                    status: r.status,
+                    meta: r.meta,
+                    guessedUsername: r.guessedUsername,
+                  }));
+
+                const { data, error } = await supabase
+                  .from("shared_results")
+                  .insert([{
+                    username,
+                    search_mode: searchMode,
+                    results: JSON.parse(JSON.stringify(shareable)),
+                  }])
+                  .select("id")
+                  .single();
+
+                if (error || !data) {
+                  toast.error("Paylaşım oluşturulamadı");
+                  return;
+                }
+
+                const shareUrl = `${window.location.origin}/share/${data.id}`;
+                await navigator.clipboard.writeText(shareUrl);
+                toast.success("Paylaşım linki panoya kopyalandı!");
+              } catch {
+                toast.error("Bir hata oluştu");
+              }
+            }}
+            className="font-mono text-xs border-terminal/30 text-terminal hover:bg-terminal/10"
+          >
+            <Share2 className="h-3 w-3 mr-1" /> Paylaş
           </Button>
         </div>
       )}
