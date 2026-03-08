@@ -10,6 +10,7 @@ interface ResultsListProps {
 const STATUS_FILTERS = [
   { key: "all", label: "Tümü" },
   { key: "found", label: "Bulundu" },
+  { key: "uncertain", label: "Belirsiz" },
   { key: "not_found", label: "Bulunamadı" },
 ] as const;
 
@@ -31,6 +32,7 @@ export function ResultsList({ results, showGuessedUsername = false }: ResultsLis
   }, [results, activeCategory, activeStatus]);
 
   const found = results.filter((r) => r.status === "found").length;
+  const uncertain = results.filter((r) => r.status === "uncertain").length;
   const done = results.filter((r) => r.status !== "pending").length;
 
   // Group by guessed username when in name mode
@@ -51,7 +53,10 @@ export function ResultsList({ results, showGuessedUsername = false }: ResultsLis
       {/* Stats */}
       <div className="flex justify-between text-xs font-mono text-terminal/70 px-1">
         <span>{done}/{results.length} tarandı</span>
-        <span>{found} bulundu</span>
+        <span>
+          {found} bulundu
+          {uncertain > 0 && <span className="text-amber-400 ml-2">{uncertain} belirsiz</span>}
+        </span>
       </div>
 
       {/* Category filters */}
