@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { ResultsList } from "@/components/ResultsList";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CustomPlatformManager } from "@/components/CustomPlatformManager";
+import { AdvancedFilters, DEFAULT_FILTERS, type SearchFilters } from "@/components/AdvancedFilters";
 import { useSearch } from "@/hooks/useSearch";
 import { exportAsJSON, exportAsCSV } from "@/utils/export";
 import { Progress } from "@/components/ui/progress";
@@ -14,14 +15,53 @@ import { toast } from "sonner";
 const Index = () => {
   const [platformVersion, setPlatformVersion] = useState(0);
   const refreshPlatforms = useCallback(() => setPlatformVersion((v) => v + 1), []);
+  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
   const { results, isSearching, progress, username, search, reset, searchMode, guessedUsernames } = useSearch();
   const hasResults = results.length > 0;
   const isDone = hasResults && !isSearching;
 
-  // For name mode, only show found results
-  const displayResults = searchMode === "name"
-    ? results.filter((r) => r.status === "found")
-    : results;
+  // Apply post-search filters (location, keyword in bio/title)
+  const displayResults = useMemo(() => {
+    let filtered = searchMode === "name"
+      ? results.filter((r) => r.status === "found")
+      : results;
+
+    const loc = filters.locationKeyword.trim().toLowerCase();
+    const kw = filters.bioKeyword.trim().toLowerCase();
+
+    if (loc || kw) {
+      filtered = filtered.map((r) => {
+        // Only filter found/uncertain results that have meta
+        if (r.status !== "found" && r.status !== "uncertain") return r;
+        if (!r.meta) return r;
+
+        const bioText = `${r.meta.bio || ""} ${r.meta.title || ""}`.toLowerCase();
+
+        const locMatch = !loc || bioText.includes(loc);
+        const kwMatch = !kw || bioText.includes(kw);
+
+        if (!locMatch || !kwMatch) {
+          // Mark as filtered out by dimming - change to not_found visually
+          return { ...r, _filtered: true } as typeof r & { _filtered?: boolean };
+        }
+        return r;
+      });
+
+      // Move filtered-out items to the end, or hide them
+      if (loc || kw) {
+        filtered = filtered.filter((r) => {
+          if (r.status !== "found" && r.status !== "uncertain") return true;
+          if (!r.meta) return true; // keep items without meta (can't filter)
+          const bioText = `${r.meta.bio || ""} ${r.meta.title || ""}`.toLowerCase();
+          const locMatch = !loc || bioText.includes(loc);
+          const kwMatch = !kw || bioText.includes(kw);
+          return locMatch && kwMatch;
+        });
+      }
+    }
+
+    return filtered;
+  }, [results, searchMode, filters.locationKeyword, filters.bioKeyword]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-12 gap-8">
@@ -46,7 +86,11 @@ const Index = () => {
         onReset={reset}
         isSearching={isSearching}
         hasResults={hasResults}
+        selectedCategories={filters.selectedCategories}
       />
+
+      {/* Advanced Filters */}
+      <AdvancedFilters filters={filters} onChange={setFilters} disabled={isSearching} />
 
       {/* Progress */}
       {isSearching && (
@@ -63,6 +107,17 @@ const Index = () => {
         </div>
       )}
 
+      {/* Active filter info */}
+      {isDone && (filters.locationKeyword.trim() || filters.bioKeyword.trim()) && (
+        <div className="w-full max-w-2xl text-xs font-mono text-terminal/60 text-center">
+          <p>
+            Filtre uygulandı → {displayResults.filter((r) => r.status === "found" || r.status === "uncertain").length} eşleşme
+            {filters.locationKeyword.trim() && <span className="text-terminal/40"> | konum: "{filters.locationKeyword.trim()}"</span>}
+            {filters.bioKeyword.trim() && <span className="text-terminal/40"> | anahtar kelime: "{filters.bioKeyword.trim()}"</span>}
+          </p>
+        </div>
+      )}
+
       {/* Name mode info */}
       {isDone && searchMode === "name" && (
         <div className="w-full max-w-2xl text-xs font-mono text-terminal/60 text-center space-y-1">
@@ -74,7 +129,7 @@ const Index = () => {
 
       {/* Export buttons */}
       {isDone && displayResults.length > 0 && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-center">
           <Button
             variant="outline"
             size="sm"
