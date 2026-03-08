@@ -118,9 +118,9 @@ export function useSearch() {
             prev.map((r) => {
               const key = `${r.platform.name}__${r.guessedUsername}`;
               const match = data.results.find(
-                (d: { name: string; status: string }) => d.name === key
+                (d: { name: string; status: string; meta?: ProfileMeta }) => d.name === key
               );
-              return match ? { ...r, status: match.status } : r;
+              return match ? { ...r, status: match.status, meta: match.meta } : r;
             })
           );
         }
