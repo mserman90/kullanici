@@ -21,8 +21,12 @@ export interface SearchResult {
 
 const BATCH_SIZE = 10;
 
-function getAllPlatforms(): Platform[] {
-  return [...builtInPlatforms, ...getCustomPlatforms()];
+function getAllPlatforms(selectedCategories?: string[]): Platform[] {
+  const all = [...builtInPlatforms, ...getCustomPlatforms()];
+  if (selectedCategories && selectedCategories.length > 0) {
+    return all.filter((p) => selectedCategories.includes(p.category));
+  }
+  return all;
 }
 
 export function useSearch() {
@@ -33,8 +37,8 @@ export function useSearch() {
   const [searchMode, setSearchMode] = useState<SearchMode>("username");
   const [guessedUsernames, setGuessedUsernames] = useState<string[]>([]);
 
-  const searchUsername = useCallback(async (query: string) => {
-    const platforms = getAllPlatforms();
+  const searchUsername = useCallback(async (query: string, selectedCategories?: string[]) => {
+    const platforms = getAllPlatforms(selectedCategories);
     const initial: SearchResult[] = platforms.map((p) => ({
       platform: p,
       url: p.url.replace("{username}", query),
@@ -79,8 +83,8 @@ export function useSearch() {
     }
   }, []);
 
-  const searchByName = useCallback(async (firstName: string, lastName: string) => {
-    const platforms = getAllPlatforms();
+  const searchByName = useCallback(async (firstName: string, lastName: string, selectedCategories?: string[]) => {
+    const platforms = getAllPlatforms(selectedCategories);
     const usernames = generateUsernames(firstName, lastName);
     setGuessedUsernames(usernames);
 
@@ -146,17 +150,17 @@ export function useSearch() {
   }, []);
 
   const search = useCallback(
-    async (query: string, mode: SearchMode, firstName?: string, lastName?: string) => {
+    async (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[]) => {
       setIsSearching(true);
       setProgress(0);
       setSearchMode(mode);
 
       if (mode === "username") {
         setUsername(query);
-        await searchUsername(query);
+        await searchUsername(query, selectedCategories);
       } else if (firstName && lastName) {
         setUsername(`${firstName} ${lastName}`);
-        await searchByName(firstName, lastName);
+        await searchByName(firstName, lastName, selectedCategories);
       }
 
       setIsSearching(false);

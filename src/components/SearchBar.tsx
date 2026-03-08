@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 export type SearchMode = "username" | "name";
 
 interface SearchBarProps {
-  onSearch: (query: string, mode: SearchMode, firstName?: string, lastName?: string) => void;
+  onSearch: (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[]) => void;
   onReset: () => void;
   isSearching: boolean;
   hasResults: boolean;
+  selectedCategories?: string[];
 }
 
-export function SearchBar({ onSearch, onReset, isSearching, hasResults }: SearchBarProps) {
+export function SearchBar({ onSearch, onReset, isSearching, hasResults, selectedCategories }: SearchBarProps) {
   const [mode, setMode] = useState<SearchMode>("username");
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -21,9 +22,9 @@ export function SearchBar({ onSearch, onReset, isSearching, hasResults }: Search
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "username" && username.trim()) {
-      onSearch(username.trim(), "username");
+      onSearch(username.trim(), "username", undefined, undefined, selectedCategories);
     } else if (mode === "name" && firstName.trim() && lastName.trim()) {
-      onSearch("", "name", firstName.trim(), lastName.trim());
+      onSearch("", "name", firstName.trim(), lastName.trim(), selectedCategories);
     }
   };
 
