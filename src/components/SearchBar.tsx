@@ -13,7 +13,7 @@ interface SearchBarProps {
   selectedCategories?: string[];
 }
 
-export function SearchBar({ onSearch, onReset, isSearching, hasResults }: SearchBarProps) {
+export function SearchBar({ onSearch, onReset, isSearching, hasResults, selectedCategories }: SearchBarProps) {
   const [mode, setMode] = useState<SearchMode>("username");
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
