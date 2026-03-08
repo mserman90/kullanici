@@ -234,8 +234,18 @@ export function useSearch() {
       }
 
       setIsSearching(false);
+
+      // If reference photo provided, run comparison
+      if (referencePhoto) {
+        // Get latest results after search completes
+        setResults((currentResults) => {
+          // Trigger comparison asynchronously
+          comparePhotos(referencePhoto, currentResults);
+          return currentResults;
+        });
+      }
     },
-    [searchUsername, searchByName]
+    [searchUsername, searchByName, comparePhotos]
   );
 
   const reset = useCallback(() => {
