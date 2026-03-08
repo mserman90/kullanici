@@ -35,6 +35,7 @@ const Index = () => {
         <p className="text-muted-foreground font-mono text-sm max-w-md">
           Sosyal medya platformlarında kullanıcı adı arayın. 50+ platform desteklenir.
         </p>
+        <CustomPlatformManager onPlatformsChange={refreshPlatforms} />
       </div>
 
       {/* Search */}
