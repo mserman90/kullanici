@@ -220,7 +220,7 @@ export function useSearch() {
   }, []);
 
   const search = useCallback(
-    async (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[]) => {
+    async (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[], referencePhoto?: string | null) => {
       setIsSearching(true);
       setProgress(0);
       setSearchMode(mode);
