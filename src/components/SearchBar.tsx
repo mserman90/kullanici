@@ -85,13 +85,15 @@ export function SearchBar({ onSearch, onReset, isSearching, hasResults }: Search
                 className="pl-10 bg-surface border-terminal/30 text-terminal placeholder:text-terminal/40 font-mono focus-visible:ring-terminal"
               />
             </div>
-            <Input
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Soyad..."
-              disabled={isSearching}
-              className="bg-surface border-terminal/30 text-terminal placeholder:text-terminal/40 font-mono focus-visible:ring-terminal"
-            />
+            <div className="flex-1">
+              <Input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Soyad..."
+                disabled={isSearching}
+                className="bg-surface border-terminal/30 text-terminal placeholder:text-terminal/40 font-mono focus-visible:ring-terminal"
+              />
+            </div>
           </div>
         )}
         <Button
