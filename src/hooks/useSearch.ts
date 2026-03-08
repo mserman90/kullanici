@@ -7,7 +7,7 @@ import type { SearchMode } from "@/components/SearchBar";
 export interface SearchResult {
   platform: Platform;
   url: string;
-  status: "found" | "not_found" | "error" | "pending";
+  status: "found" | "not_found" | "uncertain" | "error" | "pending";
   guessedUsername?: string;
 }
 
