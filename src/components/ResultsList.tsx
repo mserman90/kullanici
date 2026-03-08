@@ -53,7 +53,10 @@ export function ResultsList({ results, showGuessedUsername = false }: ResultsLis
       {/* Stats */}
       <div className="flex justify-between text-xs font-mono text-terminal/70 px-1">
         <span>{done}/{results.length} tarandı</span>
-        <span>{found} bulundu</span>
+        <span>
+          {found} bulundu
+          {uncertain > 0 && <span className="text-amber-400 ml-2">{uncertain} belirsiz</span>}
+        </span>
       </div>
 
       {/* Category filters */}
