@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export type SearchMode = "username" | "name";
 
 interface SearchBarProps {
-  onSearch: (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[]) => void;
+  onSearch: (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[], referencePhoto?: string | null) => void;
   onReset: () => void;
   isSearching: boolean;
   hasResults: boolean;
