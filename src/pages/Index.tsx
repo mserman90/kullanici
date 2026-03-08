@@ -87,6 +87,7 @@ const Index = () => {
         isSearching={isSearching}
         hasResults={hasResults}
         selectedCategories={filters.selectedCategories}
+        referencePhoto={filters.referencePhoto}
       />
 
       {/* Advanced Filters */}
