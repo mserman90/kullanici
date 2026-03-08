@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 export type SearchMode = "username" | "name";
 
 interface SearchBarProps {
-  onSearch: (query: string, mode: SearchMode, firstName?: string, lastName?: string) => void;
+  onSearch: (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[]) => void;
   onReset: () => void;
   isSearching: boolean;
   hasResults: boolean;
+  selectedCategories?: string[];
 }
 
 export function SearchBar({ onSearch, onReset, isSearching, hasResults }: SearchBarProps) {
