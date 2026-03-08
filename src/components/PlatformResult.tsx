@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { CheckCircle2, XCircle, Loader2, ExternalLink, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
-import type { SearchResult } from "@/hooks/useSearch";
+import type { SearchResult, PhotoSimilarity } from "@/hooks/useSearch";
+
+const similarityConfig: Record<string, { label: string; color: string; emoji: string }> = {
+  high: { label: "Yüksek benzerlik", color: "text-terminal bg-terminal/10 border-terminal/30", emoji: "✅" },
+  medium: { label: "Orta benzerlik", color: "text-amber-400 bg-amber-400/10 border-amber-400/30", emoji: "🟡" },
+  low: { label: "Düşük benzerlik", color: "text-muted-foreground bg-muted/10 border-muted/30", emoji: "⚪" },
+  none: { label: "Eşleşmedi", color: "text-muted-foreground/50 bg-muted/5 border-muted/20", emoji: "❌" },
+  pending: { label: "Karşılaştırılıyor...", color: "text-terminal/50 bg-terminal/5 border-terminal/20", emoji: "⏳" },
+  skipped: { label: "Atlandı", color: "text-muted-foreground/40 bg-muted/5 border-muted/20", emoji: "⏭️" },
+};
 
 interface PlatformResultProps {
   result: SearchResult;
