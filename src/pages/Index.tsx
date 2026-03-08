@@ -7,9 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Download, Terminal } from "lucide-react";
 
 const Index = () => {
-  const { results, isSearching, progress, username, search, reset } = useSearch();
+  const { results, isSearching, progress, username, search, reset, searchMode, guessedUsernames } = useSearch();
   const hasResults = results.length > 0;
   const isDone = hasResults && !isSearching;
+
+  // For name mode, only show found results
+  const displayResults = searchMode === "name"
+    ? results.filter((r) => r.status === "found")
+    : results;
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-12 gap-8">
@@ -41,16 +46,30 @@ const Index = () => {
           <p className="text-xs text-terminal/60 font-mono text-center">
             &gt; {username} aranıyor... {Math.round(progress)}%
           </p>
+          {searchMode === "name" && (
+            <p className="text-xs text-terminal/40 font-mono text-center">
+              {guessedUsernames.length} kullanıcı adı varyasyonu × {Math.round(results.length / Math.max(guessedUsernames.length, 1))} platform
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Name mode info */}
+      {isDone && searchMode === "name" && (
+        <div className="w-full max-w-2xl text-xs font-mono text-terminal/60 text-center space-y-1">
+          <p>
+            {guessedUsernames.length} varyasyon denendi → {displayResults.length} eşleşme bulundu
+          </p>
         </div>
       )}
 
       {/* Export buttons */}
-      {isDone && (
+      {isDone && displayResults.length > 0 && (
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => exportAsJSON(results, username)}
+            onClick={() => exportAsJSON(displayResults, username)}
             className="font-mono text-xs border-terminal/30 text-terminal hover:bg-terminal/10"
           >
             <Download className="h-3 w-3 mr-1" /> JSON
@@ -58,7 +77,7 @@ const Index = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => exportAsCSV(results, username)}
+            onClick={() => exportAsCSV(displayResults, username)}
             className="font-mono text-xs border-terminal/30 text-terminal hover:bg-terminal/10"
           >
             <Download className="h-3 w-3 mr-1" /> CSV
@@ -67,12 +86,12 @@ const Index = () => {
       )}
 
       {/* Results */}
-      <ResultsList results={results} />
+      <ResultsList results={displayResults} showGuessedUsername={searchMode === "name"} />
 
       {/* Empty state */}
       {!hasResults && (
         <div className="text-center mt-8 font-mono text-muted-foreground/40 text-sm space-y-1">
-          <p>&gt; Aramaya başlamak için bir kullanıcı adı girin</p>
+          <p>&gt; Aramaya başlamak için bir kullanıcı adı veya ad-soyad girin</p>
           <p className="text-xs">&gt; Örnek: johndoe, elonmusk, torvalds</p>
         </div>
       )}
