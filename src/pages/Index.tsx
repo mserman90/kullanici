@@ -111,7 +111,7 @@ const Index = () => {
                   .insert({
                     username,
                     search_mode: searchMode,
-                    results: shareable,
+                    results: shareable as unknown as Record<string, unknown>,
                   })
                   .select("id")
                   .single();
