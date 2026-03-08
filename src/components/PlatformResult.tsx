@@ -60,6 +60,11 @@ export function PlatformResult({ result }: PlatformResultProps) {
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
+          {result.photoSimilarity && similarityConfig[result.photoSimilarity] && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded border font-mono ${similarityConfig[result.photoSimilarity].color}`}>
+              {similarityConfig[result.photoSimilarity].emoji} {similarityConfig[result.photoSimilarity].label}
+            </span>
+          )}
           {status === "uncertain" && (
             <span className="text-xs text-amber-400/80">Belirsiz</span>
           )}

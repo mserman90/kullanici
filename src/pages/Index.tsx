@@ -108,6 +108,13 @@ const Index = () => {
         </div>
       )}
 
+      {/* Photo comparison progress */}
+      {isComparing && (
+        <div className="w-full max-w-2xl text-xs font-mono text-center text-terminal/60 animate-pulse">
+          🔍 Referans fotoğraf ile profil fotoğrafları AI ile karşılaştırılıyor...
+        </div>
+      )}
+
       {/* Active filter info */}
       {isDone && (filters.locationKeyword.trim() || filters.bioKeyword.trim()) && (
         <div className="w-full max-w-2xl text-xs font-mono text-terminal/60 text-center">
