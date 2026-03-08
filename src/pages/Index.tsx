@@ -16,7 +16,7 @@ const Index = () => {
   const [platformVersion, setPlatformVersion] = useState(0);
   const refreshPlatforms = useCallback(() => setPlatformVersion((v) => v + 1), []);
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
-  const { results, isSearching, progress, username, search, reset, searchMode, guessedUsernames } = useSearch();
+  const { results, isSearching, isComparing, progress, username, search, reset, searchMode, guessedUsernames } = useSearch();
   const hasResults = results.length > 0;
   const isDone = hasResults && !isSearching;
 
