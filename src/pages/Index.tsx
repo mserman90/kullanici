@@ -60,6 +60,17 @@ const Index = () => {
       }
     }
 
+    // Sort by photo similarity (high first)
+    const similarityOrder: Record<string, number> = { high: 0, medium: 1, low: 2, pending: 3, none: 4, skipped: 5 };
+    const hasAnySimilarity = filtered.some((r) => r.photoSimilarity && r.photoSimilarity !== "skipped");
+    if (hasAnySimilarity) {
+      filtered = [...filtered].sort((a, b) => {
+        const aVal = similarityOrder[a.photoSimilarity || "none"] ?? 4;
+        const bVal = similarityOrder[b.photoSimilarity || "none"] ?? 4;
+        return aVal - bVal;
+      });
+    }
+
     return filtered;
   }, [results, searchMode, filters.locationKeyword, filters.bioKeyword]);
 
