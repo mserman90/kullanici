@@ -37,8 +37,8 @@ export function useSearch() {
   const [searchMode, setSearchMode] = useState<SearchMode>("username");
   const [guessedUsernames, setGuessedUsernames] = useState<string[]>([]);
 
-  const searchUsername = useCallback(async (query: string) => {
-    const platforms = getAllPlatforms();
+  const searchUsername = useCallback(async (query: string, selectedCategories?: string[]) => {
+    const platforms = getAllPlatforms(selectedCategories);
     const initial: SearchResult[] = platforms.map((p) => ({
       platform: p,
       url: p.url.replace("{username}", query),
