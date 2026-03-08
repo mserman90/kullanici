@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
-import { platforms, type Platform } from "@/data/platforms";
+import { platforms as builtInPlatforms, type Platform } from "@/data/platforms";
 import { supabase } from "@/integrations/supabase/client";
 import { generateUsernames } from "@/utils/usernameGenerator";
+import { getCustomPlatforms } from "@/utils/customPlatforms";
 import type { SearchMode } from "@/components/SearchBar";
 
 export interface ProfileMeta {
@@ -20,6 +21,10 @@ export interface SearchResult {
 
 const BATCH_SIZE = 10;
 
+function getAllPlatforms(): Platform[] {
+  return [...builtInPlatforms, ...getCustomPlatforms()];
+}
+
 export function useSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -29,6 +34,7 @@ export function useSearch() {
   const [guessedUsernames, setGuessedUsernames] = useState<string[]>([]);
 
   const searchUsername = useCallback(async (query: string) => {
+    const platforms = getAllPlatforms();
     const initial: SearchResult[] = platforms.map((p) => ({
       platform: p,
       url: p.url.replace("{username}", query),
@@ -74,6 +80,7 @@ export function useSearch() {
   }, []);
 
   const searchByName = useCallback(async (firstName: string, lastName: string) => {
+    const platforms = getAllPlatforms();
     const usernames = generateUsernames(firstName, lastName);
     setGuessedUsernames(usernames);
 
