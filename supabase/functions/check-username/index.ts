@@ -58,7 +58,6 @@ const PLATFORM_RULES: PlatformRule[] = [
       /check out the latest videos/i,
       /discover.*tiktok/i,
       /something went wrong/i,
-      /<title>.*TikTok.*<\/title>/i, // generic TikTok title without username
     ],
     foundPatterns: [
       /follower/i,
@@ -66,6 +65,7 @@ const PLATFORM_RULES: PlatformRule[] = [
       /likes?\b/i,
       /videos?\b/i,
     ],
+    alwaysUncertain: true, // TikTok is a SPA, HTML is unreliable
   },
   {
     hostPattern: /snapchat\.com/i,
