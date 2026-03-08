@@ -108,11 +108,11 @@ const Index = () => {
 
                 const { data, error } = await supabase
                   .from("shared_results")
-                  .insert({
+                  .insert([{
                     username,
                     search_mode: searchMode,
-                    results: shareable as unknown as Record<string, unknown>,
-                  })
+                    results: JSON.parse(JSON.stringify(shareable)),
+                  }])
                   .select("id")
                   .single();
 
