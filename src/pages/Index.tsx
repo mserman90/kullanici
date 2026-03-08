@@ -1,6 +1,8 @@
+import { useState, useCallback } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { ResultsList } from "@/components/ResultsList";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CustomPlatformManager } from "@/components/CustomPlatformManager";
 import { useSearch } from "@/hooks/useSearch";
 import { exportAsJSON, exportAsCSV } from "@/utils/export";
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Download, Terminal } from "lucide-react";
 
 const Index = () => {
+  const [platformVersion, setPlatformVersion] = useState(0);
+  const refreshPlatforms = useCallback(() => setPlatformVersion((v) => v + 1), []);
   const { results, isSearching, progress, username, search, reset, searchMode, guessedUsernames } = useSearch();
   const hasResults = results.length > 0;
   const isDone = hasResults && !isSearching;
