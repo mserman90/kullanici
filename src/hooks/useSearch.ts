@@ -21,8 +21,12 @@ export interface SearchResult {
 
 const BATCH_SIZE = 10;
 
-function getAllPlatforms(): Platform[] {
-  return [...builtInPlatforms, ...getCustomPlatforms()];
+function getAllPlatforms(selectedCategories?: string[]): Platform[] {
+  const all = [...builtInPlatforms, ...getCustomPlatforms()];
+  if (selectedCategories && selectedCategories.length > 0) {
+    return all.filter((p) => selectedCategories.includes(p.category));
+  }
+  return all;
 }
 
 export function useSearch() {
