@@ -283,7 +283,13 @@ async function checkUrl(
       return { name, url, status: "not_found" };
     }
 
-    // Uncertain: fall back to HTTP status
+    // Check if this platform has alwaysUncertain flag
+    const rule = getPlatformRule(url);
+    if (rule?.alwaysUncertain) {
+      return { name, url, status: "uncertain" };
+    }
+
+    // Uncertain without platform rule: fall back to HTTP status
     const found = res.status >= 200 && res.status < 400;
     return { name, url, status: found ? "found" : "not_found" };
   } catch {
