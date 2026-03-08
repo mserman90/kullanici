@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
-import { platforms, type Platform } from "@/data/platforms";
+import { platforms as builtInPlatforms, type Platform } from "@/data/platforms";
 import { supabase } from "@/integrations/supabase/client";
 import { generateUsernames } from "@/utils/usernameGenerator";
+import { getCustomPlatforms } from "@/utils/customPlatforms";
 import type { SearchMode } from "@/components/SearchBar";
 
 export interface ProfileMeta {
