@@ -4,11 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateUsernames } from "@/utils/usernameGenerator";
 import type { SearchMode } from "@/components/SearchBar";
 
+export interface ProfileMeta {
+  avatar?: string;
+  bio?: string;
+  title?: string;
+}
+
 export interface SearchResult {
   platform: Platform;
   url: string;
   status: "found" | "not_found" | "uncertain" | "error" | "pending";
   guessedUsername?: string;
+  meta?: ProfileMeta;
 }
 
 const BATCH_SIZE = 10;
@@ -48,9 +55,9 @@ export function useSearch() {
           setResults((prev) =>
             prev.map((r) => {
               const match = data.results.find(
-                (d: { name: string; status: string }) => d.name === r.platform.name
+                (d: { name: string; status: string; meta?: ProfileMeta }) => d.name === r.platform.name
               );
-              return match ? { ...r, status: match.status } : r;
+              return match ? { ...r, status: match.status, meta: match.meta } : r;
             })
           );
         }
@@ -111,9 +118,9 @@ export function useSearch() {
             prev.map((r) => {
               const key = `${r.platform.name}__${r.guessedUsername}`;
               const match = data.results.find(
-                (d: { name: string; status: string }) => d.name === key
+                (d: { name: string; status: string; meta?: ProfileMeta }) => d.name === key
               );
-              return match ? { ...r, status: match.status } : r;
+              return match ? { ...r, status: match.status, meta: match.meta } : r;
             })
           );
         }

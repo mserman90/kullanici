@@ -211,10 +211,33 @@ function analyzeContent(html: string, url: string): "found" | "not_found" | "unc
   return "uncertain";
 }
 
+function extractMeta(html: string): { avatar?: string; bio?: string; title?: string } {
+  const meta: { avatar?: string; bio?: string; title?: string } = {};
+
+  // og:image
+  const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+  if (ogImage?.[1]) meta.avatar = ogImage[1];
+
+  // og:description or meta description
+  const ogDesc = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i)
+    || html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
+  if (ogDesc?.[1]) meta.bio = ogDesc[1].substring(0, 200);
+
+  // og:title
+  const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+  if (ogTitle?.[1]) meta.title = ogTitle[1].substring(0, 100);
+
+  return meta;
+}
+
 async function checkUrl(
   name: string,
   url: string
-): Promise<{ name: string; url: string; status: string }> {
+): Promise<{ name: string; url: string; status: string; meta?: { avatar?: string; bio?: string; title?: string } }> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
@@ -276,9 +299,10 @@ async function checkUrl(
 
     // Analyze HTML content
     const contentResult = analyzeContent(html, url);
+    const meta = extractMeta(html);
 
     if (contentResult === "found") {
-      return { name, url, status: "found" };
+      return { name, url, status: "found", meta };
     } else if (contentResult === "not_found") {
       return { name, url, status: "not_found" };
     }
@@ -286,12 +310,12 @@ async function checkUrl(
     // Check if this platform has alwaysUncertain flag
     const rule = getPlatformRule(url);
     if (rule?.alwaysUncertain) {
-      return { name, url, status: "uncertain" };
+      return { name, url, status: "uncertain", meta };
     }
 
     // Uncertain without platform rule: fall back to HTTP status
     const found = res.status >= 200 && res.status < 400;
-    return { name, url, status: found ? "found" : "not_found" };
+    return { name, url, status: found ? "found" : "not_found", ...(found ? { meta } : {}) };
   } catch {
     return { name, url, status: "error" };
   }
