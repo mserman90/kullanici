@@ -40,18 +40,158 @@ const FOUND_PATTERNS = [
   /joined/i,
   /member since/i,
   /bio/i,
-  /profile/i,
 ];
 
+// Platform-specific rules to reduce false positives
+interface PlatformRule {
+  hostPattern: RegExp;
+  notFoundPatterns?: RegExp[];
+  foundPatterns?: RegExp[];
+  alwaysUncertain?: boolean; // force status-only check
+}
+
+const PLATFORM_RULES: PlatformRule[] = [
+  {
+    hostPattern: /tiktok\.com/i,
+    notFoundPatterns: [
+      /couldn.?t find this account/i,
+      /check out the latest videos/i,
+      /discover.*tiktok/i,
+      /something went wrong/i,
+      /<title>.*TikTok.*<\/title>/i, // generic TikTok title without username
+    ],
+    foundPatterns: [
+      /follower/i,
+      /following/i,
+      /likes?\b/i,
+      /videos?\b/i,
+    ],
+  },
+  {
+    hostPattern: /snapchat\.com/i,
+    notFoundPatterns: [
+      /snapchat\.com\/add\b/i, // stayed on generic add page
+      /add me on snapchat/i,
+      /page not available/i,
+    ],
+    foundPatterns: [
+      /snapcode/i,
+      /snap\s*score/i,
+      /subscriber/i,
+    ],
+    alwaysUncertain: true, // Snapchat rarely exposes public profiles
+  },
+  {
+    hostPattern: /discord\.com/i,
+    alwaysUncertain: true, // Discord profiles are not publicly scrapeable
+  },
+  {
+    hostPattern: /t\.me/i,
+    notFoundPatterns: [
+      /if you have.*telegram/i,
+      /get telegram/i,
+      /install telegram/i,
+    ],
+    foundPatterns: [
+      /subscribers?/i,
+      /members?/i,
+      /online/i,
+    ],
+  },
+  {
+    hostPattern: /slack\.com/i,
+    alwaysUncertain: true, // Slack workspaces are private
+  },
+  {
+    hostPattern: /x\.com|twitter\.com/i,
+    notFoundPatterns: [
+      /this account doesn.?t exist/i,
+      /account suspended/i,
+      /caution.*this profile/i,
+    ],
+    foundPatterns: [
+      /followers?/i,
+      /following/i,
+      /tweets?/i,
+      /posts?/i,
+    ],
+  },
+  {
+    hostPattern: /instagram\.com/i,
+    notFoundPatterns: [
+      /sorry.*this page isn.?t available/i,
+      /the link you followed may be broken/i,
+    ],
+    foundPatterns: [
+      /followers?/i,
+      /following/i,
+      /posts?/i,
+    ],
+  },
+  {
+    hostPattern: /facebook\.com/i,
+    notFoundPatterns: [
+      /page not found/i,
+      /this content isn.?t available/i,
+      /the link may be broken/i,
+    ],
+    foundPatterns: [
+      /friends?/i,
+      /followers?/i,
+      /timeline/i,
+    ],
+  },
+  {
+    hostPattern: /steamcommunity\.com/i,
+    notFoundPatterns: [
+      /the specified profile could not be found/i,
+      /error/i,
+    ],
+    foundPatterns: [
+      /level\s*\d/i,
+      /badges/i,
+      /games/i,
+      /friends/i,
+    ],
+  },
+  {
+    hostPattern: /roblox\.com/i,
+    notFoundPatterns: [
+      /page cannot be found/i,
+      /404/i,
+    ],
+    foundPatterns: [
+      /friends/i,
+      /followers/i,
+      /following/i,
+      /member since/i,
+    ],
+  },
+];
+
+function getPlatformRule(url: string): PlatformRule | undefined {
+  return PLATFORM_RULES.find((r) => r.hostPattern.test(url));
+}
+
 function analyzeContent(html: string, url: string): "found" | "not_found" | "uncertain" {
-  // Check for not-found signals first
-  const notFoundScore = NOT_FOUND_PATTERNS.reduce(
+  const rule = getPlatformRule(url);
+
+  // Platform marked as always uncertain (can't reliably scrape)
+  if (rule?.alwaysUncertain) return "uncertain";
+
+  // Use platform-specific patterns if available, else fallback to generic
+  const notFoundList = rule?.notFoundPatterns
+    ? [...NOT_FOUND_PATTERNS, ...rule.notFoundPatterns]
+    : NOT_FOUND_PATTERNS;
+
+  const foundList = rule?.foundPatterns || FOUND_PATTERNS;
+
+  const notFoundScore = notFoundList.reduce(
     (score, pattern) => score + (pattern.test(html) ? 1 : 0),
     0
   );
 
-  // Check for found signals
-  const foundScore = FOUND_PATTERNS.reduce(
+  const foundScore = foundList.reduce(
     (score, pattern) => score + (pattern.test(html) ? 1 : 0),
     0
   );
@@ -59,10 +199,15 @@ function analyzeContent(html: string, url: string): "found" | "not_found" | "unc
   // Strong not-found signals
   if (notFoundScore >= 2) return "not_found";
 
-  // Strong found signals
+  // For platforms with custom rules, require stronger found signals
+  if (rule) {
+    if (foundScore >= 2 && notFoundScore === 0) return "found";
+    return "uncertain";
+  }
+
+  // Generic: found if decent signal
   if (foundScore >= 2 && notFoundScore === 0) return "found";
 
-  // Ambiguous
   return "uncertain";
 }
 
