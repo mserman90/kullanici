@@ -11,12 +11,15 @@ export interface ProfileMeta {
   title?: string;
 }
 
+export type PhotoSimilarity = "high" | "medium" | "low" | "none" | "pending" | "skipped";
+
 export interface SearchResult {
   platform: Platform;
   url: string;
   status: "found" | "not_found" | "uncertain" | "error" | "pending";
   guessedUsername?: string;
   meta?: ProfileMeta;
+  photoSimilarity?: PhotoSimilarity;
 }
 
 const BATCH_SIZE = 10;
