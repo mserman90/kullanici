@@ -11,6 +11,7 @@ interface SearchBarProps {
   isSearching: boolean;
   hasResults: boolean;
   selectedCategories?: string[];
+  referencePhoto?: string | null;
 }
 
 export function SearchBar({ onSearch, onReset, isSearching, hasResults, selectedCategories }: SearchBarProps) {
