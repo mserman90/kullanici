@@ -21,6 +21,10 @@ export interface SearchResult {
 
 const BATCH_SIZE = 10;
 
+function getAllPlatforms(): Platform[] {
+  return [...builtInPlatforms, ...getCustomPlatforms()];
+}
+
 export function useSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
