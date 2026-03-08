@@ -299,9 +299,10 @@ async function checkUrl(
 
     // Analyze HTML content
     const contentResult = analyzeContent(html, url);
+    const meta = extractMeta(html);
 
     if (contentResult === "found") {
-      return { name, url, status: "found" };
+      return { name, url, status: "found", meta };
     } else if (contentResult === "not_found") {
       return { name, url, status: "not_found" };
     }
@@ -309,12 +310,12 @@ async function checkUrl(
     // Check if this platform has alwaysUncertain flag
     const rule = getPlatformRule(url);
     if (rule?.alwaysUncertain) {
-      return { name, url, status: "uncertain" };
+      return { name, url, status: "uncertain", meta };
     }
 
     // Uncertain without platform rule: fall back to HTTP status
     const found = res.status >= 200 && res.status < 400;
-    return { name, url, status: found ? "found" : "not_found" };
+    return { name, url, status: found ? "found" : "not_found", ...(found ? { meta } : {}) };
   } catch {
     return { name, url, status: "error" };
   }
