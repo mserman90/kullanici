@@ -80,6 +80,7 @@ export function useSearch() {
   }, []);
 
   const searchByName = useCallback(async (firstName: string, lastName: string) => {
+    const platforms = getAllPlatforms();
     const usernames = generateUsernames(firstName, lastName);
     setGuessedUsernames(usernames);
 
