@@ -7,7 +7,9 @@ import { useSearch } from "@/hooks/useSearch";
 import { exportAsJSON, exportAsCSV } from "@/utils/export";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Download, Terminal } from "lucide-react";
+import { Download, Terminal, Share2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Index = () => {
   const [platformVersion, setPlatformVersion] = useState(0);
