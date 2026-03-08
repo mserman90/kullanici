@@ -1,12 +1,81 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { SearchBar } from "@/components/SearchBar";
+import { ResultsList } from "@/components/ResultsList";
+import { useSearch } from "@/hooks/useSearch";
+import { exportAsJSON, exportAsCSV } from "@/utils/export";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Download, Terminal } from "lucide-react";
 
 const Index = () => {
+  const { results, isSearching, progress, username, search, reset } = useSearch();
+  const hasResults = results.length > 0;
+  const isDone = hasResults && !isSearching;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background flex flex-col items-center px-4 py-12 gap-8">
+      {/* Header */}
+      <div className="text-center space-y-3">
+        <div className="flex items-center justify-center gap-3">
+          <Terminal className="h-8 w-8 text-terminal" />
+          <h1 className="text-4xl font-bold font-mono text-terminal tracking-tight">
+            Sherlock
+          </h1>
+        </div>
+        <p className="text-muted-foreground font-mono text-sm max-w-md">
+          Sosyal medya platformlarında kullanıcı adı arayın. 50+ platform desteklenir.
+        </p>
       </div>
+
+      {/* Search */}
+      <SearchBar
+        onSearch={search}
+        onReset={reset}
+        isSearching={isSearching}
+        hasResults={hasResults}
+      />
+
+      {/* Progress */}
+      {isSearching && (
+        <div className="w-full max-w-2xl space-y-1">
+          <Progress value={progress} className="h-1.5 bg-muted/20 [&>div]:bg-terminal" />
+          <p className="text-xs text-terminal/60 font-mono text-center">
+            &gt; {username} aranıyor... {Math.round(progress)}%
+          </p>
+        </div>
+      )}
+
+      {/* Export buttons */}
+      {isDone && (
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportAsJSON(results, username)}
+            className="font-mono text-xs border-terminal/30 text-terminal hover:bg-terminal/10"
+          >
+            <Download className="h-3 w-3 mr-1" /> JSON
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportAsCSV(results, username)}
+            className="font-mono text-xs border-terminal/30 text-terminal hover:bg-terminal/10"
+          >
+            <Download className="h-3 w-3 mr-1" /> CSV
+          </Button>
+        </div>
+      )}
+
+      {/* Results */}
+      <ResultsList results={results} />
+
+      {/* Empty state */}
+      {!hasResults && (
+        <div className="text-center mt-8 font-mono text-muted-foreground/40 text-sm space-y-1">
+          <p>&gt; Aramaya başlamak için bir kullanıcı adı girin</p>
+          <p className="text-xs">&gt; Örnek: johndoe, elonmusk, torvalds</p>
+        </div>
+      )}
     </div>
   );
 };
