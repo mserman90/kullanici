@@ -18,7 +18,7 @@ const Index = () => {
         <div className="flex items-center justify-center gap-3">
           <Terminal className="h-8 w-8 text-terminal" />
           <h1 className="text-4xl font-bold font-mono text-terminal tracking-tight">
-            Sherlock
+            Kullanıcı Adı
           </h1>
         </div>
         <p className="text-muted-foreground font-mono text-sm max-w-md">
