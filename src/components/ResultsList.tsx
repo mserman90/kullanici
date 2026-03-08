@@ -30,8 +30,6 @@ export function ResultsList({ results, showGuessedUsername = false }: ResultsLis
     });
   }, [results, activeCategory, activeStatus]);
 
-  if (results.length === 0) return null;
-
   const found = results.filter((r) => r.status === "found").length;
   const done = results.filter((r) => r.status !== "pending").length;
 
