@@ -10,6 +10,7 @@ interface ResultsListProps {
 const STATUS_FILTERS = [
   { key: "all", label: "Tümü" },
   { key: "found", label: "Bulundu" },
+  { key: "uncertain", label: "Belirsiz" },
   { key: "not_found", label: "Bulunamadı" },
 ] as const;
 
