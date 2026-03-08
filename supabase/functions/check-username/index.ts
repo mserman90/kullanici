@@ -58,7 +58,6 @@ const PLATFORM_RULES: PlatformRule[] = [
       /check out the latest videos/i,
       /discover.*tiktok/i,
       /something went wrong/i,
-      /<title>.*TikTok.*<\/title>/i, // generic TikTok title without username
     ],
     foundPatterns: [
       /follower/i,
@@ -66,6 +65,7 @@ const PLATFORM_RULES: PlatformRule[] = [
       /likes?\b/i,
       /videos?\b/i,
     ],
+    alwaysUncertain: true, // TikTok is a SPA, HTML is unreliable
   },
   {
     hostPattern: /snapchat\.com/i,
@@ -283,7 +283,13 @@ async function checkUrl(
       return { name, url, status: "not_found" };
     }
 
-    // Uncertain: fall back to HTTP status
+    // Check if this platform has alwaysUncertain flag
+    const rule = getPlatformRule(url);
+    if (rule?.alwaysUncertain) {
+      return { name, url, status: "uncertain" };
+    }
+
+    // Uncertain without platform rule: fall back to HTTP status
     const found = res.status >= 200 && res.status < 400;
     return { name, url, status: found ? "found" : "not_found" };
   } catch {
