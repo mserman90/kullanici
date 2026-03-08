@@ -23,9 +23,9 @@ export function SearchBar({ onSearch, onReset, isSearching, hasResults, selected
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "username" && username.trim()) {
-      onSearch(username.trim(), "username", undefined, undefined, selectedCategories);
+      onSearch(username.trim(), "username", undefined, undefined, selectedCategories, referencePhoto);
     } else if (mode === "name" && firstName.trim() && lastName.trim()) {
-      onSearch("", "name", firstName.trim(), lastName.trim(), selectedCategories);
+      onSearch("", "name", firstName.trim(), lastName.trim(), selectedCategories, referencePhoto);
     }
   };
 
