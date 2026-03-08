@@ -1,5 +1,6 @@
 import { SearchBar } from "@/components/SearchBar";
 import { ResultsList } from "@/components/ResultsList";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSearch } from "@/hooks/useSearch";
 import { exportAsJSON, exportAsCSV } from "@/utils/export";
 import { Progress } from "@/components/ui/progress";
