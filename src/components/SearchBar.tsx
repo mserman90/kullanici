@@ -14,7 +14,7 @@ interface SearchBarProps {
   referencePhoto?: string | null;
 }
 
-export function SearchBar({ onSearch, onReset, isSearching, hasResults, selectedCategories }: SearchBarProps) {
+export function SearchBar({ onSearch, onReset, isSearching, hasResults, selectedCategories, referencePhoto }: SearchBarProps) {
   const [mode, setMode] = useState<SearchMode>("username");
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
