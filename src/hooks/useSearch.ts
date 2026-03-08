@@ -35,10 +35,77 @@ function getAllPlatforms(selectedCategories?: string[]): Platform[] {
 export function useSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [username, setUsername] = useState("");
   const [searchMode, setSearchMode] = useState<SearchMode>("username");
   const [guessedUsernames, setGuessedUsernames] = useState<string[]>([]);
+
+  const comparePhotos = useCallback(async (referencePhoto: string, currentResults: SearchResult[]) => {
+    const withAvatars = currentResults.filter(
+      (r) => (r.status === "found" || r.status === "uncertain") && r.meta?.avatar
+    );
+    if (withAvatars.length === 0) return;
+
+    setIsComparing(true);
+
+    // Mark eligible results as pending comparison
+    setResults((prev) =>
+      prev.map((r) =>
+        withAvatars.some((w) => w.platform.name === r.platform.name && w.guessedUsername === r.guessedUsername)
+          ? { ...r, photoSimilarity: "pending" as const }
+          : r
+      )
+    );
+
+    // Process in batches of 8
+    const PHOTO_BATCH = 8;
+    for (let i = 0; i < withAvatars.length; i += PHOTO_BATCH) {
+      const batch = withAvatars.slice(i, i + PHOTO_BATCH);
+      const avatars = batch.map((r) => ({
+        platformName: r.platform.name,
+        avatarUrl: r.meta!.avatar!,
+        guessedUsername: r.guessedUsername,
+      }));
+
+      try {
+        const { data, error } = await supabase.functions.invoke("compare-photos", {
+          body: { referencePhoto, avatars },
+        });
+
+        if (error || !data?.results) {
+          setResults((prev) =>
+            prev.map((r) =>
+              batch.some((b) => b.platform.name === r.platform.name && b.guessedUsername === r.guessedUsername)
+                ? { ...r, photoSimilarity: "skipped" as const }
+                : r
+            )
+          );
+        } else {
+          setResults((prev) =>
+            prev.map((r) => {
+              const match = data.results.find(
+                (d: { platformName: string; similarity: string; guessedUsername?: string }) =>
+                  d.platformName === r.platform.name &&
+                  (!d.guessedUsername || d.guessedUsername === r.guessedUsername)
+              );
+              return match ? { ...r, photoSimilarity: match.similarity as PhotoSimilarity } : r;
+            })
+          );
+        }
+      } catch {
+        setResults((prev) =>
+          prev.map((r) =>
+            batch.some((b) => b.platform.name === r.platform.name && b.guessedUsername === r.guessedUsername)
+              ? { ...r, photoSimilarity: "skipped" as const }
+              : r
+          )
+        );
+      }
+    }
+
+    setIsComparing(false);
+  }, []);
 
   const searchUsername = useCallback(async (query: string, selectedCategories?: string[]) => {
     const platforms = getAllPlatforms(selectedCategories);
