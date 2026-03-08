@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { PlatformResult } from "./PlatformResult";
 import type { SearchResult } from "@/hooks/useSearch";
 
@@ -5,22 +6,97 @@ interface ResultsListProps {
   results: SearchResult[];
 }
 
+const STATUS_FILTERS = [
+  { key: "all", label: "Tümü" },
+  { key: "found", label: "Bulundu" },
+  { key: "not_found", label: "Bulunamadı" },
+] as const;
+
 export function ResultsList({ results }: ResultsListProps) {
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [activeStatus, setActiveStatus] = useState<string>("all");
+
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(results.map((r) => r.platform.category)));
+    return ["all", ...cats.sort()];
+  }, [results]);
+
+  const filtered = useMemo(() => {
+    return results.filter((r) => {
+      const catMatch = activeCategory === "all" || r.platform.category === activeCategory;
+      const statusMatch = activeStatus === "all" || r.status === activeStatus;
+      return catMatch && statusMatch;
+    });
+  }, [results, activeCategory, activeStatus]);
+
   if (results.length === 0) return null;
 
   const found = results.filter((r) => r.status === "found").length;
   const done = results.filter((r) => r.status !== "pending").length;
 
   return (
-    <div className="w-full max-w-2xl space-y-2">
+    <div className="w-full max-w-2xl space-y-3">
+      {/* Stats */}
       <div className="flex justify-between text-xs font-mono text-terminal/70 px-1">
         <span>{done}/{results.length} tarandı</span>
         <span>{found} bulundu</span>
       </div>
-      <div className="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1">
-        {results.map((r) => (
+
+      {/* Category filters */}
+      <div className="flex flex-wrap gap-1.5">
+        {categories.map((cat) => {
+          const count = cat === "all"
+            ? results.length
+            : results.filter((r) => r.platform.category === cat).length;
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
+                activeCategory === cat
+                  ? "bg-terminal text-background"
+                  : "bg-muted/20 text-muted-foreground hover:bg-terminal/10 hover:text-terminal"
+              }`}
+            >
+              {cat === "all" ? "Tümü" : cat} ({count})
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Status filters */}
+      <div className="flex gap-1.5">
+        {STATUS_FILTERS.map(({ key, label }) => {
+          const count =
+            key === "all"
+              ? (activeCategory === "all" ? results : results.filter((r) => r.platform.category === activeCategory)).length
+              : (activeCategory === "all" ? results : results.filter((r) => r.platform.category === activeCategory)).filter((r) => r.status === key).length;
+          return (
+            <button
+              key={key}
+              onClick={() => setActiveStatus(key)}
+              className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
+                activeStatus === key
+                  ? "bg-terminal/80 text-background"
+                  : "bg-muted/20 text-muted-foreground hover:bg-terminal/10 hover:text-terminal"
+              }`}
+            >
+              {label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Results */}
+      <div className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1">
+        {filtered.map((r) => (
           <PlatformResult key={r.platform.name} result={r} />
         ))}
+        {filtered.length === 0 && (
+          <p className="text-center text-muted-foreground/50 font-mono text-xs py-4">
+            Bu filtreye uygun sonuç bulunamadı
+          </p>
+        )}
       </div>
     </div>
   );
