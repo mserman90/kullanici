@@ -44,6 +44,7 @@ export function ResultsList({ results, showGuessedUsername = false }: ResultsLis
     }
     return map;
   }, [filtered, showGuessedUsername]);
+  if (results.length === 0) return null;
 
   return (
     <div className="w-full max-w-2xl space-y-3">
