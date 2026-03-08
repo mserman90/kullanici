@@ -150,17 +150,17 @@ export function useSearch() {
   }, []);
 
   const search = useCallback(
-    async (query: string, mode: SearchMode, firstName?: string, lastName?: string) => {
+    async (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[]) => {
       setIsSearching(true);
       setProgress(0);
       setSearchMode(mode);
 
       if (mode === "username") {
         setUsername(query);
-        await searchUsername(query);
+        await searchUsername(query, selectedCategories);
       } else if (firstName && lastName) {
         setUsername(`${firstName} ${lastName}`);
-        await searchByName(firstName, lastName);
+        await searchByName(firstName, lastName, selectedCategories);
       }
 
       setIsSearching(false);
