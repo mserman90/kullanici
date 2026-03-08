@@ -1,11 +1,14 @@
 import { useState, useCallback } from "react";
 import { platforms, type Platform } from "@/data/platforms";
 import { supabase } from "@/integrations/supabase/client";
+import { generateUsernames } from "@/utils/usernameGenerator";
+import type { SearchMode } from "@/components/SearchBar";
 
 export interface SearchResult {
   platform: Platform;
   url: string;
   status: "found" | "not_found" | "error" | "pending";
+  guessedUsername?: string;
 }
 
 const BATCH_SIZE = 10;
@@ -15,21 +18,17 @@ export function useSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const [progress, setProgress] = useState(0);
   const [username, setUsername] = useState("");
+  const [searchMode, setSearchMode] = useState<SearchMode>("username");
+  const [guessedUsernames, setGuessedUsernames] = useState<string[]>([]);
 
-  const search = useCallback(async (query: string) => {
-    if (!query.trim()) return;
-    setUsername(query);
-    setIsSearching(true);
-    setProgress(0);
-
+  const searchUsername = useCallback(async (query: string) => {
     const initial: SearchResult[] = platforms.map((p) => ({
       platform: p,
       url: p.url.replace("{username}", query),
-      status: "pending",
+      status: "pending" as const,
     }));
     setResults(initial);
 
-    // Process in batches of BATCH_SIZE via edge function
     for (let i = 0; i < platforms.length; i += BATCH_SIZE) {
       const batch = initial.slice(i, i + BATCH_SIZE);
       const urls = batch.map((r) => ({ name: r.platform.name, url: r.url }));
@@ -40,12 +39,9 @@ export function useSearch() {
         });
 
         if (error || !data?.results) {
-          // Mark batch as error
           setResults((prev) =>
             prev.map((r) =>
-              urls.some((u) => u.name === r.platform.name)
-                ? { ...r, status: "error" }
-                : r
+              urls.some((u) => u.name === r.platform.name) ? { ...r, status: "error" } : r
             )
           );
         } else {
@@ -61,25 +57,106 @@ export function useSearch() {
       } catch {
         setResults((prev) =>
           prev.map((r) =>
-            urls.some((u) => u.name === r.platform.name)
-              ? { ...r, status: "error" }
-              : r
+            urls.some((u) => u.name === r.platform.name) ? { ...r, status: "error" } : r
           )
         );
       }
 
       setProgress(Math.min(((i + BATCH_SIZE) / platforms.length) * 100, 100));
     }
-
-    setIsSearching(false);
   }, []);
+
+  const searchByName = useCallback(async (firstName: string, lastName: string) => {
+    const usernames = generateUsernames(firstName, lastName);
+    setGuessedUsernames(usernames);
+
+    // Create results: each platform × each username guess
+    const initial: SearchResult[] = [];
+    for (const uname of usernames) {
+      for (const p of platforms) {
+        initial.push({
+          platform: p,
+          url: p.url.replace("{username}", uname),
+          status: "pending",
+          guessedUsername: uname,
+        });
+      }
+    }
+    setResults(initial);
+
+    const totalChecks = initial.length;
+    let completed = 0;
+
+    for (let i = 0; i < initial.length; i += BATCH_SIZE) {
+      const batch = initial.slice(i, i + BATCH_SIZE);
+      const urls = batch.map((r) => ({
+        name: `${r.platform.name}__${r.guessedUsername}`,
+        url: r.url,
+      }));
+
+      try {
+        const { data, error } = await supabase.functions.invoke("check-username", {
+          body: { urls },
+        });
+
+        if (error || !data?.results) {
+          setResults((prev) =>
+            prev.map((r) => {
+              const key = `${r.platform.name}__${r.guessedUsername}`;
+              return urls.some((u) => u.name === key) ? { ...r, status: "error" } : r;
+            })
+          );
+        } else {
+          setResults((prev) =>
+            prev.map((r) => {
+              const key = `${r.platform.name}__${r.guessedUsername}`;
+              const match = data.results.find(
+                (d: { name: string; status: string }) => d.name === key
+              );
+              return match ? { ...r, status: match.status } : r;
+            })
+          );
+        }
+      } catch {
+        setResults((prev) =>
+          prev.map((r) => {
+            const key = `${r.platform.name}__${r.guessedUsername}`;
+            return urls.some((u) => u.name === key) ? { ...r, status: "error" } : r;
+          })
+        );
+      }
+
+      completed += batch.length;
+      setProgress(Math.min((completed / totalChecks) * 100, 100));
+    }
+  }, []);
+
+  const search = useCallback(
+    async (query: string, mode: SearchMode, firstName?: string, lastName?: string) => {
+      setIsSearching(true);
+      setProgress(0);
+      setSearchMode(mode);
+
+      if (mode === "username") {
+        setUsername(query);
+        await searchUsername(query);
+      } else if (firstName && lastName) {
+        setUsername(`${firstName} ${lastName}`);
+        await searchByName(firstName, lastName);
+      }
+
+      setIsSearching(false);
+    },
+    [searchUsername, searchByName]
+  );
 
   const reset = useCallback(() => {
     setResults([]);
     setProgress(0);
     setUsername("");
     setIsSearching(false);
+    setGuessedUsernames([]);
   }, []);
 
-  return { results, isSearching, progress, username, search, reset };
+  return { results, isSearching, progress, username, search, reset, searchMode, guessedUsernames };
 }
