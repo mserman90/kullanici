@@ -4,11 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateUsernames } from "@/utils/usernameGenerator";
 import type { SearchMode } from "@/components/SearchBar";
 
+export interface ProfileMeta {
+  avatar?: string;
+  bio?: string;
+  title?: string;
+}
+
 export interface SearchResult {
   platform: Platform;
   url: string;
   status: "found" | "not_found" | "uncertain" | "error" | "pending";
   guessedUsername?: string;
+  meta?: ProfileMeta;
 }
 
 const BATCH_SIZE = 10;
