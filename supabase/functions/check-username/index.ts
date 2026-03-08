@@ -211,10 +211,33 @@ function analyzeContent(html: string, url: string): "found" | "not_found" | "unc
   return "uncertain";
 }
 
+function extractMeta(html: string): { avatar?: string; bio?: string; title?: string } {
+  const meta: { avatar?: string; bio?: string; title?: string } = {};
+
+  // og:image
+  const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+  if (ogImage?.[1]) meta.avatar = ogImage[1];
+
+  // og:description or meta description
+  const ogDesc = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i)
+    || html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
+  if (ogDesc?.[1]) meta.bio = ogDesc[1].substring(0, 200);
+
+  // og:title
+  const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+  if (ogTitle?.[1]) meta.title = ogTitle[1].substring(0, 100);
+
+  return meta;
+}
+
 async function checkUrl(
   name: string,
   url: string
-): Promise<{ name: string; url: string; status: string }> {
+): Promise<{ name: string; url: string; status: string; meta?: { avatar?: string; bio?: string; title?: string } }> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
