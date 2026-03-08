@@ -256,5 +256,5 @@ export function useSearch() {
     setGuessedUsernames([]);
   }, []);
 
-  return { results, isSearching, progress, username, search, reset, searchMode, guessedUsernames };
+  return { results, isSearching, isComparing, progress, username, search, reset, searchMode, guessedUsernames };
 }
