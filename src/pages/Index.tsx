@@ -16,7 +16,7 @@ const Index = () => {
   const [platformVersion, setPlatformVersion] = useState(0);
   const refreshPlatforms = useCallback(() => setPlatformVersion((v) => v + 1), []);
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
-  const { results, isSearching, progress, username, search, reset, searchMode, guessedUsernames } = useSearch();
+  const { results, isSearching, isComparing, progress, username, search, reset, searchMode, guessedUsernames } = useSearch();
   const hasResults = results.length > 0;
   const isDone = hasResults && !isSearching;
 
@@ -87,6 +87,7 @@ const Index = () => {
         isSearching={isSearching}
         hasResults={hasResults}
         selectedCategories={filters.selectedCategories}
+        referencePhoto={filters.referencePhoto}
       />
 
       {/* Advanced Filters */}
@@ -104,6 +105,13 @@ const Index = () => {
               {guessedUsernames.length} kullanıcı adı varyasyonu × {Math.round(results.length / Math.max(guessedUsernames.length, 1))} platform
             </p>
           )}
+        </div>
+      )}
+
+      {/* Photo comparison progress */}
+      {isComparing && (
+        <div className="w-full max-w-2xl text-xs font-mono text-center text-terminal/60 animate-pulse">
+          🔍 Referans fotoğraf ile profil fotoğrafları AI ile karşılaştırılıyor...
         </div>
       )}
 

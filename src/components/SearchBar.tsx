@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 export type SearchMode = "username" | "name";
 
 interface SearchBarProps {
-  onSearch: (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[]) => void;
+  onSearch: (query: string, mode: SearchMode, firstName?: string, lastName?: string, selectedCategories?: string[], referencePhoto?: string | null) => void;
   onReset: () => void;
   isSearching: boolean;
   hasResults: boolean;
   selectedCategories?: string[];
+  referencePhoto?: string | null;
 }
 
-export function SearchBar({ onSearch, onReset, isSearching, hasResults, selectedCategories }: SearchBarProps) {
+export function SearchBar({ onSearch, onReset, isSearching, hasResults, selectedCategories, referencePhoto }: SearchBarProps) {
   const [mode, setMode] = useState<SearchMode>("username");
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -22,9 +23,9 @@ export function SearchBar({ onSearch, onReset, isSearching, hasResults, selected
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "username" && username.trim()) {
-      onSearch(username.trim(), "username", undefined, undefined, selectedCategories);
+      onSearch(username.trim(), "username", undefined, undefined, selectedCategories, referencePhoto);
     } else if (mode === "name" && firstName.trim() && lastName.trim()) {
-      onSearch("", "name", firstName.trim(), lastName.trim(), selectedCategories);
+      onSearch("", "name", firstName.trim(), lastName.trim(), selectedCategories, referencePhoto);
     }
   };
 

@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { CheckCircle2, XCircle, Loader2, ExternalLink, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
-import type { SearchResult } from "@/hooks/useSearch";
+import type { SearchResult, PhotoSimilarity } from "@/hooks/useSearch";
+
+const similarityConfig: Record<string, { label: string; color: string; emoji: string }> = {
+  high: { label: "Yüksek benzerlik", color: "text-terminal bg-terminal/10 border-terminal/30", emoji: "✅" },
+  medium: { label: "Orta benzerlik", color: "text-amber-400 bg-amber-400/10 border-amber-400/30", emoji: "🟡" },
+  low: { label: "Düşük benzerlik", color: "text-muted-foreground bg-muted/10 border-muted/30", emoji: "⚪" },
+  none: { label: "Eşleşmedi", color: "text-muted-foreground/50 bg-muted/5 border-muted/20", emoji: "❌" },
+  pending: { label: "Karşılaştırılıyor...", color: "text-terminal/50 bg-terminal/5 border-terminal/20", emoji: "⏳" },
+  skipped: { label: "Atlandı", color: "text-muted-foreground/40 bg-muted/5 border-muted/20", emoji: "⏭️" },
+};
 
 interface PlatformResultProps {
   result: SearchResult;
@@ -51,6 +60,11 @@ export function PlatformResult({ result }: PlatformResultProps) {
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
+          {result.photoSimilarity && similarityConfig[result.photoSimilarity] && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded border font-mono ${similarityConfig[result.photoSimilarity].color}`}>
+              {similarityConfig[result.photoSimilarity].emoji} {similarityConfig[result.photoSimilarity].label}
+            </span>
+          )}
           {status === "uncertain" && (
             <span className="text-xs text-amber-400/80">Belirsiz</span>
           )}
