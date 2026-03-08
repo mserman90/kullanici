@@ -55,9 +55,9 @@ export function useSearch() {
           setResults((prev) =>
             prev.map((r) => {
               const match = data.results.find(
-                (d: { name: string; status: string }) => d.name === r.platform.name
+                (d: { name: string; status: string; meta?: ProfileMeta }) => d.name === r.platform.name
               );
-              return match ? { ...r, status: match.status } : r;
+              return match ? { ...r, status: match.status, meta: match.meta } : r;
             })
           );
         }
