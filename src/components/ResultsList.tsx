@@ -32,6 +32,7 @@ export function ResultsList({ results, showGuessedUsername = false }: ResultsLis
   }, [results, activeCategory, activeStatus]);
 
   const found = results.filter((r) => r.status === "found").length;
+  const uncertain = results.filter((r) => r.status === "uncertain").length;
   const done = results.filter((r) => r.status !== "pending").length;
 
   // Group by guessed username when in name mode
