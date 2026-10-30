@@ -6,6 +6,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+interface TextContentPart {
+  type: "text";
+  text: string;
+}
+
+interface ImageContentPart {
+  type: "image_url";
+  image_url: { url: string };
+}
+
+type ContentPart = TextContentPart | ImageContentPart;
+
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const len = bytes.byteLength;
+  const chunkSize = 8192;
+  for (let i = 0; i < len; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, len));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  return btoa(binary);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -29,7 +52,7 @@ serve(async (req) => {
     }
 
     // Build image content parts for the AI
-    const imageParts: any[] = [
+    const imageParts: ContentPart[] = [
       {
         type: "text",
         text: `You are a face/photo comparison expert. I will show you a reference photo and several profile avatar images. For each avatar, determine how likely it is the SAME PERSON as the reference photo.
@@ -68,7 +91,7 @@ Be strict - only mark "high" if facial features clearly match. Consider hair, fa
         if (!contentType.startsWith("image/")) continue;
 
         const buffer = await resp.arrayBuffer();
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        const base64 = uint8ArrayToBase64(new Uint8Array(buffer));
         const dataUrl = `data:${contentType};base64,${base64}`;
 
         imageParts.push(

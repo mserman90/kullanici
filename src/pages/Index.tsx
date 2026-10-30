@@ -30,34 +30,14 @@ const Index = () => {
     const kw = filters.bioKeyword.trim().toLowerCase();
 
     if (loc || kw) {
-      filtered = filtered.map((r) => {
-        // Only filter found/uncertain results that have meta
-        if (r.status !== "found" && r.status !== "uncertain") return r;
-        if (!r.meta) return r;
-
+      filtered = filtered.filter((r) => {
+        if (r.status !== "found" && r.status !== "uncertain") return true;
+        if (!r.meta) return true; // keep items without meta (can't filter)
         const bioText = `${r.meta.bio || ""} ${r.meta.title || ""}`.toLowerCase();
-
         const locMatch = !loc || bioText.includes(loc);
         const kwMatch = !kw || bioText.includes(kw);
-
-        if (!locMatch || !kwMatch) {
-          // Mark as filtered out by dimming - change to not_found visually
-          return { ...r, _filtered: true } as typeof r & { _filtered?: boolean };
-        }
-        return r;
+        return locMatch && kwMatch;
       });
-
-      // Move filtered-out items to the end, or hide them
-      if (loc || kw) {
-        filtered = filtered.filter((r) => {
-          if (r.status !== "found" && r.status !== "uncertain") return true;
-          if (!r.meta) return true; // keep items without meta (can't filter)
-          const bioText = `${r.meta.bio || ""} ${r.meta.title || ""}`.toLowerCase();
-          const locMatch = !loc || bioText.includes(loc);
-          const kwMatch = !kw || bioText.includes(kw);
-          return locMatch && kwMatch;
-        });
-      }
     }
 
     // Sort by photo similarity (high first)
